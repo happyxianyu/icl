@@ -3,11 +3,15 @@ from infinity import inf  # 用于表示无穷大
 
 __all__ = [
     'inf',
-    'IntervalSet'
+    'ItvSet'
 ]
 
 
-class IntervalSet:
+class ItvSet:
+    """
+    interval set
+    """
+
     def __init__(self, iterable=None):
         """
         iterable中的元素类型为tuple
@@ -40,3 +44,6 @@ class IntervalSet:
 
     def __str__(self):
         return super().__str__()
+
+    def __iter__(self):  # 从小到大返回pair
+        yield
