@@ -1,8 +1,20 @@
+import typing
+from infinity import inf  # 用于表示无穷大
+
+__all__ = [
+    'inf',
+    'IntervalSet'
+]
+
+
 class IntervalSet:
     def __init__(self, iterable=None):
+        """
+        iterable中的元素类型为tuple
+        """
         pass
 
-    def add(self, x):
+    def add(self, x: tuple):
         pass
 
     def __and__(self, other):
