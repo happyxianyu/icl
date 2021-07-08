@@ -9,7 +9,10 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 ## 目标
 
 按照joining规则实现区间集合ItvSet
+
 按照splitting规则实现区间映射表ItvMap
+
+关于规则的定义可关于boost::icl的链接
 
 ## 许可证
 
