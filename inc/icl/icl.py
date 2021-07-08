@@ -28,10 +28,12 @@ class Itv:
     def _canonicalize(self):
         if self.a > self.b or \
             (self.a == self.b and (self.left_open or self.right_open) ):
-            self.a = self.b = None
+            # 方便比较
+            self.a = inf
+            self.b = -inf
 
     def empty(self):
-        return self.a is None
+        return self.a > self.b
 
     def __and__(self, x: 'Itv'):
         a = max(self.a, x.a)
@@ -157,9 +159,26 @@ class Itv:
 class ItvNode:
     def __init__(self, itv: Itv):
         self.itv = itv
+        self.max = itv.b # 所有子树中的最大值
         self.lch: 'ItvNode' = None
         self.rch: 'ItvNode' = None
         self.prnt: 'ItvNode' = None
+
+    @property
+    def a(self):
+        return self.itv.a
+
+    @a.setter
+    def _(self, x):
+        self.itv.a=x
+
+    @property
+    def b(self):
+        return self.itv.b
+
+    @b.setter
+    def _(self, x):
+        self.itv.b = x
 
     def rotate_l(self):
         x = self
@@ -178,6 +197,22 @@ class ItvNode:
         x.rch = y
         y.lch = b
         self._rotate_set_prnt(n)
+
+    def next_high(self):
+        rch = self.rch
+        prnt = self.prnt
+        if rch is not None:
+            return rch.next_high()
+        if prnt is not None and prnt.lch is self:
+            return prnt
+
+    def next_low(self):
+        lch = self.lch
+        prnt = self.prnt
+        if lch is not None:
+            return lch.next_low()
+        if prnt is not None and prnt.rch is self:
+            return prnt
 
     def _rotate_set_prnt(self, n):
         prnt = self.prnt
@@ -204,37 +239,18 @@ class ItvNode:
         if lch is not None:
             yield from lch._preorder_iter()
 
-    def next_high(self):
-        rch = self.rch
-        prnt = self.prnt
-        if rch is not None:
-            return rch.next_high()
-        if prnt is not None and prnt.lch is self:
-            return prnt
 
-    def next_low(self):
-        lch = self.lch
-        prnt = self.prnt
-        if lch is not None:
-            return lch.next_low()
-        if prnt is not None and prnt.rch is self:
-            return prnt
 
-    @property
-    def a(self):
-        return self.itv.a
 
-    @a.setter
-    def _(self, x):
-        self.itv.a=x
 
-    @property
-    def b(self):
-        return self.itv.b
 
-    @b.setter
-    def _(self, x):
-        self.itv.b = x
+
+
+
+
+
+
+
 
 
 class ItvSet:
@@ -268,9 +284,6 @@ class ItvSet:
         return self._max().itv
 
     def iter_from_low(self, x):
-        """
-
-        """
         n = self._root
         
         pass
