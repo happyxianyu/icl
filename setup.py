@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='icl',
-    version='0.0.0',
+    version='0.0',
     packages=['icl'],
     package_dir={'', 'inc'},
     install_requires=['infinity>=1.5'],
