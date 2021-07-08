@@ -6,6 +6,14 @@
 
 boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/index.html#boost_icl.introduction
 
+## 类型
+
+Itv: Interval表示区间
+
+ItvNode: 区间树节点
+
+ItvSet：区间集合
+
 ## 目标
 
 按照joining规则实现区间集合ItvSet
