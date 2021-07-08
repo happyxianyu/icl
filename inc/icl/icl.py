@@ -23,7 +23,7 @@ class Itv:
 
     @property
     def kind(self):
-        return self.left_open << 1 + self.right_open
+        return (self.left_open << 1)+ self.right_open
 
     def _canonicalize(self):
         if self.a > self.b or \
@@ -34,6 +34,24 @@ class Itv:
 
     def empty(self):
         return self.a > self.b
+
+    def __in__(self, x):
+        if type(x) == type(self):
+            pass # TODO
+        else:
+            return self._ge_a(x) and self._le_b(x)
+            
+    def _ge_a(self, x):
+        if self.left_open:
+            return self.a < x
+        else:
+            return self.a <= x
+    
+    def _le_b(self, b):
+        if self.right_open:
+            return self.b > x
+        else:
+            return self.b >= x 
 
     def __and__(self, x: 'Itv'):
         a = max(self.a, x.a)
@@ -129,7 +147,7 @@ class Itv:
 
 
     def __lt__(self, x):
-        if type(x) == Itv:
+        if type(self) == type(x):
             if self.b <= x.a:
                 return self.right_open or x.left_open or (self.b<x.a)
         else:
@@ -140,7 +158,7 @@ class Itv:
                 return self.b < x
 
     def __gt__(self, x):
-        if type(x) == Itv:
+        if type(self) == type(x):
             return x < self
         else:
             pass # TODO
@@ -156,13 +174,20 @@ class Itv:
 
 
 
+
+# 每个节点的区间保证不相交
 class ItvNode:
     def __init__(self, itv: Itv):
         self.itv = itv
-        self.max = itv.b # 所有子树中的最大值
+        self.max_node = self # 所有子树中的包含最大值的节点
         self.lch: 'ItvNode' = None
         self.rch: 'ItvNode' = None
         self.prnt: 'ItvNode' = None
+        self.red = False
+
+    @property
+    def max(self):
+        return self.max_node.b
 
     @property
     def a(self):
@@ -180,6 +205,22 @@ class ItvNode:
     def _(self, x):
         self.itv.b = x
 
+    @property
+    def left_open(self):
+        return self.itv.left_open
+    
+    @left_open.setter
+    def _(self, x):
+        self.itv.left_open = x
+    
+    @property
+    def right_open(self):
+        return self.itv.right_open
+
+    @right_open.setter
+    def _(self, x):
+        self.itv.right_open = x
+
     def rotate_l(self):
         x = self
         y = x.rch
@@ -187,7 +228,7 @@ class ItvNode:
 
         y.lch = x
         x.rch = b
-        self._rotate_set_prnt(n)
+        self._rotate_set_prnt(y)
 
     def rotate_r(self):
         y = self
@@ -196,7 +237,7 @@ class ItvNode:
 
         x.rch = y
         y.lch = b
-        self._rotate_set_prnt(n)
+        self._rotate_set_prnt(x)
 
     def next_high(self):
         rch = self.rch
@@ -214,6 +255,48 @@ class ItvNode:
         if prnt is not None and prnt.rch is self:
             return prnt
 
+    def find(self, x):
+        if x > self.max:
+            return None
+        if x in self.itv:
+            return self
+        if x <= self.a:
+            ch = self.lch
+        else:
+            ch = self.rch
+        if ch is not None:
+            return ch.find(x)
+
+    def find_by_lower(self, x):
+        if x > self.max:
+            return None
+        if x in self.itv:
+            return self
+        if x <= self.a:
+            ch = self.lch
+        else:
+            ch = self.rch
+        if ch is not None:
+            n = ch.find_by_lower(x)
+
+        if n is None and x<= self.a:    #左边未找到
+            return self
+    
+    def find_by_upper(self, x):
+        if x > self.max:
+            return self.max_node
+        if x in self.itv:
+            return self
+        if x <= self.a:
+            ch = self.lch
+        else:
+            ch = self.rch
+        if ch is not None:
+            n = ch.find_by_lower(x)
+
+        if n is None and x>self.a:  #右边未找到
+            return self
+
     def _rotate_set_prnt(self, n):
         prnt = self.prnt
         if self is prnt.lch:
@@ -221,27 +304,30 @@ class ItvNode:
         else:
             prnt.rch = n
 
-    def _abc_order_iter(self):
-        lch = self.lch
-        rch = self.rch
-        if lch is not None:
-            yield from lch._preorder_iter()
-        yield self
-        if rch is not None:
-            yield from rch._abc_order_iter()
+    def abc_order_iter(self):
+        yield from _abc_order_iter(self)
     
-    def _cba_order_iter(self):
-        lch = self.lch
-        rch = self.rch
-        if rch is not None:
-            yield from rch._abc_order_iter()
-        yield self
-        if lch is not None:
-            yield from lch._preorder_iter()
+    def cba_order_iter(self):
+        yield from _cba_order_iter(self)
 
 
 
 
+def _abc_order_iter(n: ItvNode):
+    if n is None:
+        return
+    yield from _abc_order_iter(n.lch)
+    yield n
+    yield from _abc_order_iter(n.rch)
+
+
+def _cba_order_iter(n: ItvNode):
+    if n is None:
+        return
+    yield from _cba_order_iter(n.rch)
+    yield n
+    yield from _cba_order_iter(n.lch)
+    
 
 
 
@@ -266,26 +352,21 @@ class ItvSet:
             self.add(ItvNode(itv))
         self._root:ItvNode = None
 
-    def add(self, x: tuple):
+    def add(self, itv: Itv):
+        """
+        应当合并相交的区间
+        """
+        n = self._root
+        n1 = n.find_by_upper(itv.a)
+
+
+    def min(self):
         pass
 
-    def _min(self):
-        for n in self._root._abc_order_iter():
-            return n
-
-    def _max(self):
-        for n in self._root._cba_order_iter():
-            return n
-    
-    def min(self):
-        return self._min().itv
-
     def max(self):
-        return self._max().itv
+        pass
 
     def iter_from_low(self, x):
-        n = self._root
-        
         pass
 
     def inter_from_high(self, x):
@@ -317,3 +398,4 @@ class ItvSet:
 
     def __iter__(self):  # 从小到大返回
         yield
+
