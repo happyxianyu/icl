@@ -2,7 +2,7 @@
 
 ## 简介
 
-该库希望能实现类似于C++中boost::icl的区间库
+该库的目标是实现类似于C++中boost::icl的区间库
 
 boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/index.html#boost_icl.introduction
 
