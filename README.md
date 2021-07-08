@@ -2,7 +2,7 @@
 
 ## 简介
 
-该库希望能实现类似于C++中boost::icl的区间库
+该库的目标是实现类似于C++中boost::icl的区间库
 
 boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/index.html#boost_icl.introduction
 
@@ -16,7 +16,7 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 
 ## 许可证
 
-该库使用Apache License 2.0
+该项目签署了Apache License 2.0授权许可，详情请参阅LICENSE
 
 ## 联系
 
@@ -24,9 +24,13 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 
 Discord开发群: https://discord.gg/f46wHwQduS
 
+QQ开发群: 772588075
+
 欢迎提出任何建议，bug反馈，以及代码贡献。
 
 欢迎想合作开发或者维护的加入群聊。
+
+感谢您的任何贡献。
 
 
 
