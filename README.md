@@ -14,6 +14,14 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 
 关于规则的定义可关于boost::icl的链接
 
+## 示例
+
+```python
+ItvSet([Itv(1, 5)]) | ItvSet([Itv(3, 7)]) == ItvSet([Itv(1,7)])
+ItvSet([Itv(1, 5)]) & ItvSet([Itv(3, 7)]) == ItvSet([Itv(3,5)])
+ItvSet([Itv(3, 7)]) - ItvSet([Itv(1, 5)])  == ItvSet([Itv(1,3), kind='[)'], [Itv(5,7), kind='(]'])
+```
+
 ## 许可证
 
 该项目签署了Apache License 2.0授权许可，详情请参阅LICENSE
