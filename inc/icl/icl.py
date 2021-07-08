@@ -153,23 +153,29 @@ class Itv:
         self.right_open = right_open
         self._canonicalize()
 
+    def __gt__(self, x):
+        if self.left_open:
+            return x <= self.a
+        else:
+            return x < self.a
+
+    def __ge__(self, x):
+        if self.right_open:
+            return x < self.b
+        else:
+            return x <= self.b
 
     def __lt__(self, x):
-        if type(self) == type(x):
-            if self.b <= x.a:
-                return self.right_open or x.left_open or (self.b<x.a)
+        if self.right_open:
+            return x >= self.b
         else:
-            if self.empty():
-                return False
-            else:
-                # TODO: close or open
-                return self.b < x
+            return x > self.b
 
-    def __gt__(self, x):
-        if type(self) == type(x):
-            return x < self
+    def __le__(self, x):
+        if self.left_open:
+            return x >= self.a
         else:
-            pass # TODO
+            return x > self.a
 
     def __eq__(self, x: 'Itv'):
         return self.kind == x.kind and self.a == x.a and self.b == x.b
@@ -189,15 +195,10 @@ class Itv:
 class ItvNode:
     def __init__(self, itv: Itv):
         self.itv = itv
-        self.max_node = self # 所有子树中的包含最大值的节点
         self.lch: 'ItvNode' = None
         self.rch: 'ItvNode' = None
         self.prnt: 'ItvNode' = None
         self.red = False
-
-    @property
-    def max(self):
-        return self.max_node.b
 
     @property
     def a(self):
@@ -269,8 +270,6 @@ class ItvNode:
         """
         x是一个点，返回落入的区间的节点
         """
-        if x > self.max:
-            return None
         if x in self.itv:
             return self
         if x <= self.a:
@@ -286,8 +285,6 @@ class ItvNode:
         如果落入了某个区间，则返回这个区间
         否则返回以x为下界的最接近x的区间
         """
-        if x > self.max:
-            return None
         if x in self.itv:
             return self
         if x <= self.a:
@@ -301,8 +298,6 @@ class ItvNode:
             return self
     
     def find_by_upper(self, x):
-        if x > self.max:
-            return self.max_node
         if x in self.itv:
             return self
         if x <= self.a:
