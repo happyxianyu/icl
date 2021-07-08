@@ -431,15 +431,6 @@ class ItvSet:
     def __eq__(self, other):
         pass
 
-    def __iand__(self, other):
-        pass
-
-    def __ior__(self, other):
-        pass
-
-    def __isub__(self, other):
-        pass
-
     def __str__(self):
         return super().__str__()
 
