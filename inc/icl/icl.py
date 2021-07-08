@@ -44,10 +44,7 @@ class Itv:
         return self.a > self.b
 
     def __in__(self, x):
-        if type(x) == type(self):
-            pass # TODO
-        else:
-            return self._ge_a(x) and self._le_b(x)
+        return self._ge_a(x) and self._le_b(x)
             
     def _ge_a(self, x):
         if self.left_open:
