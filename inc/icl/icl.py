@@ -47,6 +47,9 @@ class Itv:
         return self.a > self.b
 
     def __in__(self, x):
+        """
+        判定某个点是否在区间内
+        """
         return self._ge_a(x) and self._le_b(x)
             
     def _ge_a(self, x):
@@ -195,10 +198,10 @@ class Itv:
 class ItvNode:
     def __init__(self, itv: Itv):
         self.itv = itv
-        self.lch: 'ItvNode' = None
-        self.rch: 'ItvNode' = None
-        self.prnt: 'ItvNode' = None
-        self.red = False
+        self.lch: 'ItvNode' = None  # 左子节点
+        self.rch: 'ItvNode' = None  # 右子节点
+        self.prnt: 'ItvNode' = None # 父节点
+        self.red = False    # 是否为红色
 
     @property
     def a(self):
@@ -320,9 +323,15 @@ class ItvNode:
             prnt.rch = n
 
     def abc_order_iter(self):
+        """
+        左中右DFS
+        """
         yield from _abc_order_iter(self)
     
     def cba_order_iter(self):
+        """
+        右中左DFS
+        """
         yield from _cba_order_iter(self)
 
 
@@ -366,6 +375,7 @@ class ItvSet:
         for itv in iterable:
             self.add(ItvNode(itv))
         self._root:ItvNode = None
+        # TODO
 
     def add(self, itv: Itv):
         """
@@ -392,6 +402,10 @@ class ItvSet:
         减去集合
         """
 
+    def __in__(self, x):
+        """
+        判定一个点是否在集合内
+        """
 
     def min(self):
         pass
