@@ -68,6 +68,8 @@ ItvSet([Itv(1, 7)]) - ItvSet([Itv(3, 5)])  == ItvSet([Itv(1,3), kind='[)'], [Itv
 
 如果你有任何需求，可以发布附带“需求”标签的issue。
 
+关于如何贡献代码可以参考这篇文章: https://www.cnblogs.com/chesterphp/p/3577924.html
+
 感谢您的任何贡献。
 
 ## 联系
