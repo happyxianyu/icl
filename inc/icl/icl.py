@@ -34,6 +34,9 @@ class Itv:
         return (self.left_open << 1)+ self.right_open
 
     def _canonicalize(self):
+        """
+        保证空集表示一致
+        """
         if self.a > self.b or \
             (self.a == self.b and (self.left_open or self.right_open) ):
             # 方便比较
@@ -306,6 +309,8 @@ class ItvNode:
 
         if n is None and x>self.a:  #右边未找到
             return self
+
+    
 
     def _rotate_set_prnt(self, n):
         prnt = self.prnt
