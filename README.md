@@ -22,6 +22,12 @@ ItvNode: 区间树节点
 
 ItvSet：区间集合
 
+## 测试
+
+单元测试使用pytest
+
+测试全部存放在test文件夹中
+
 ## 路径
 
 inc/icl 			模块位置
