@@ -6,6 +6,12 @@
 
 boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/index.html#boost_icl.introduction
 
+## 当前目标
+
+实现interval set
+
+只考虑closed区间
+
 ## 许可证
 
 该库使用Apache License 2.0
