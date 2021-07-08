@@ -24,6 +24,8 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 
 Discord开发群: https://discord.gg/f46wHwQduS
 
+QQ开发群: 772588075
+
 欢迎提出任何建议，bug反馈，以及代码贡献。
 
 欢迎想合作开发或者维护的加入群聊。
