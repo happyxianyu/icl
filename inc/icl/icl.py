@@ -21,6 +21,7 @@ class Itv:
     def __init__(self, a, b, kind='[]'):
         """
         kind表示区间类型, 根据数学上的表示，[]表示闭区间， ()表示开区间
+        a,b分别表示左断点和右端点
         """
         self.a = a
         self.b = b
@@ -183,6 +184,8 @@ class Itv:
 
 
 # 每个节点的区间保证不相交
+# 按照node.a构建二叉搜索树
+# 使用红黑树为基础
 class ItvNode:
     def __init__(self, itv: Itv):
         self.itv = itv
@@ -263,6 +266,9 @@ class ItvNode:
             return prnt
 
     def find(self, x):
+        """
+        x是一个点，返回落入的区间的节点
+        """
         if x > self.max:
             return None
         if x in self.itv:
@@ -275,6 +281,11 @@ class ItvNode:
             return ch.find(x)
 
     def find_by_lower(self, x):
+        """
+        x表示下界，是一个点
+        如果落入了某个区间，则返回这个区间
+        否则返回以x为下界的最接近x的区间
+        """
         if x > self.max:
             return None
         if x in self.itv:
@@ -361,10 +372,28 @@ class ItvSet:
 
     def add(self, itv: Itv):
         """
-        应当合并相交的区间
+        插入区间，并且合并相交的区间
         """
-        n = self._root
-        n1 = n.find_by_upper(itv.a)
+
+    def remove(self, itv: Itv):
+        """
+        删除区间
+        """
+    
+    def __iand__(self, s: ItvSet):
+        """
+        相交集合
+        """
+
+    def __ior__(self, s:ItvSet):
+        """
+        合并集合
+        """
+
+    def __isub__(self, s:ItvSet):
+        """
+        减去集合
+        """
 
 
     def min(self):
@@ -373,10 +402,10 @@ class ItvSet:
     def max(self):
         pass
 
-    def iter_from_low(self, x):
+    def iter_from_lower(self, x):
         pass
 
-    def inter_from_high(self, x):
+    def inter_from_upper(self, x):
         pass
 
     def __and__(self, other):
