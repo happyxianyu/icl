@@ -16,10 +16,16 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 
 ## 示例
 
+$$
+\{[1,5] \} \cup \{[3, 7]\} = \{[1, 7]\} \\
+\{[1,5] \} \cap \{[3, 7]\} = \{[1, 7]\} \\
+\{[1, 7]\} -  \{[3,5] \} = \{[1, 3), (5, 7]\}
+$$
+
 ```python
 ItvSet([Itv(1, 5)]) | ItvSet([Itv(3, 7)]) == ItvSet([Itv(1,7)])
 ItvSet([Itv(1, 5)]) & ItvSet([Itv(3, 7)]) == ItvSet([Itv(3,5)])
-ItvSet([Itv(3, 7)]) - ItvSet([Itv(1, 5)])  == ItvSet([Itv(1,3), kind='[)'], [Itv(5,7), kind='(]'])
+ItvSet([Itv(1, 7)]) - ItvSet([Itv(3, 5)])  == ItvSet([Itv(1,3), kind='[)'], [Itv(5,7), kind='(]'])
 ```
 
 ## 许可证
