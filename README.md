@@ -6,11 +6,10 @@
 
 boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/index.html#boost_icl.introduction
 
-## 当前目标
+## 目标
 
-实现interval set
-
-只考虑closed区间
+按照joining规则实现区间集合ItvSet
+按照splitting规则实现区间映射表ItvMap
 
 ## 许可证
 
@@ -18,7 +17,14 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 
 ## 联系
 
-QQ: 3362336457
+个人QQ: 3362336457
 
-如有建议或希望加入合作，可以随时联系我。
+Discord开发群: https://discord.gg/f46wHwQduS
+
+欢迎提出任何建议，bug反馈，以及代码贡献。
+
+欢迎想合作开发或者维护的加入群聊。
+
+
+
 

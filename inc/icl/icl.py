@@ -1,3 +1,10 @@
+"""
+采用红黑树作为基础实现区间树
+参考 https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/index.html#boost_icl.introduction
+按照joining规则实现ItvSet
+"""
+
+
 import typing
 from infinity import inf  # 用于表示无穷大
 
