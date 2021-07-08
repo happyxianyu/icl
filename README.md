@@ -6,6 +6,14 @@
 
 boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/index.html#boost_icl.introduction
 
+## 目标
+
+按照joining规则实现区间集合ItvSet
+
+按照splitting规则实现区间映射表ItvMap
+
+关于规则的定义可关于boost::icl的链接
+
 ## 类型
 
 Itv: Interval表示区间
@@ -14,13 +22,11 @@ ItvNode: 区间树节点
 
 ItvSet：区间集合
 
-## 目标
+## 路径
 
-按照joining规则实现区间集合ItvSet
+inc/icl 			模块位置
 
-按照splitting规则实现区间映射表ItvMap
-
-关于规则的定义可关于boost::icl的链接
+inc/icl/icl.py 当前全部实现
 
 ## 示例
 
