@@ -50,15 +50,21 @@ class Itv:
         """
         判定某个点是否在区间内
         """
-        return self._ge_a(x) and self._le_b(x)
+        return self.right_to_a(x) and self.left_to_b(x)
             
-    def _ge_a(self, x):
+    def right_to_a(self, x):
+        """
+        x在a端点的右边
+        """
         if self.left_open:
             return self.a < x
         else:
             return self.a <= x
     
-    def _le_b(self, b):
+    def left_to_b(self, b):
+        """
+        x在b断点的左边
+        """
         if self.right_open:
             return self.b > x
         else:
@@ -196,12 +202,12 @@ class Itv:
 # 按照node.a构建二叉搜索树
 # 使用红黑树为基础
 class ItvNode:
-    def __init__(self, itv: Itv):
+    def __init__(self, itv: Itv, red=True):
         self.itv = itv
         self.lch: 'ItvNode' = None  # 左子节点
         self.rch: 'ItvNode' = None  # 右子节点
         self.prnt: 'ItvNode' = None # 父节点
-        self.red = False    # 是否为红色
+        self.red = red    # 是否为红色
 
     @property
     def a(self):
@@ -243,6 +249,7 @@ class ItvNode:
         y.lch = x
         x.rch = b
         self._rotate_set_prnt(y)
+        return y
 
     def rotate_r(self):
         y = self
@@ -252,6 +259,7 @@ class ItvNode:
         x.rch = y
         y.lch = b
         self._rotate_set_prnt(x)
+        return x
 
     def next_high(self):
         rch = self.rch
@@ -288,35 +296,15 @@ class ItvNode:
         如果落入了某个区间，则返回这个区间
         否则返回以x为下界的最接近x的区间
         """
-        if x in self.itv:
-            return self
-        if x <= self.a:
-            ch = self.lch
-        else:
-            ch = self.rch
-        if ch is not None:
-            n = ch.find_by_lower(x)
-
-        if n is None and x<= self.a:    #左边未找到
-            return self
+        return _find_by_lower(self, x)
     
     def find_by_upper(self, x):
-        if x in self.itv:
-            return self
-        if x <= self.a:
-            ch = self.lch
-        else:
-            ch = self.rch
-        if ch is not None:
-            n = ch.find_by_lower(x)
-
-        if n is None and x>self.a:  #右边未找到
-            return self
-
-    
+        return _find_by_upper(self, x)
 
     def _rotate_set_prnt(self, n):
         prnt = self.prnt
+        if prnt is None:
+            return
         if self is prnt.lch:
             prnt.lch = n
         else:
@@ -334,7 +322,20 @@ class ItvNode:
         """
         yield from _cba_order_iter(self)
 
+    def is_root(self):
+        return self.prnt is None
 
+    @property
+    def sibling(self):
+        prnt = self.prnt
+        if prnt is None:
+            return
+        
+        lch = prnt.lch
+        if self is lch:
+            return prnt.rch
+        else:
+            return lch
 
 
 def _abc_order_iter(n: ItvNode):
@@ -344,22 +345,78 @@ def _abc_order_iter(n: ItvNode):
     yield n
     yield from _abc_order_iter(n.rch)
 
-
 def _cba_order_iter(n: ItvNode):
     if n is None:
         return
     yield from _cba_order_iter(n.rch)
     yield n
     yield from _cba_order_iter(n.lch)
-    
 
 
+def _find_by_lower(self: ItvNode, x):
+    if self is None:
+        return
+
+    if x in self.itv:
+        return self
+    if x <= self.a:
+        n = _find_by_lower(self.lch, x)
+        if n is None:
+            return self
+        return n
+    else:
+        return _find_by_lower(self.rch, x)
+
+def _find_by_upper(self: ItvNode, x):
+    if self is None:
+        return
+
+    if x in self.itv:
+        return self
+    if x <= self.a:
+        return _find_by_upper(self.lch, x)
+    else:
+        n = _find_by_upper(self.rch, x)
+        if n is None:
+            return self
+        return n
 
 
+def _find_max(n: ItvNode):
+    for x in _cba_order_iter(n):
+        return x
+
+def _find_min(n: ItvNode):
+    for x in _abc_order_iter(n):
+        return x
 
 
+def _resolve_insert(n: ItvNode):
+    prnt = n.prnt
+    if prnt is None or not prnt.red:
+        return
+
+    # pprnt 一定存在
+    prnt_s = prnt.sibling
+    if prnt_s is not None and prnt_s.red:
+        prnt.red = False
+        prnt_s.red = False
+        pprnt = prnt.prnt
+        pprnt.red = True
+        n = pprnt
+
+    if n is prnt.rch:
+        prnt.rotate_l()
+        n = prnt    # 使得n为lch
+        prnt = n.prnt
+    prnt.red = False
+    pprnt = prnt.prnt
+    pprnt.red = True
+    pprnt.rotate_r()
 
 
+def _resolve_remove(n: ItvNode):
+    pass
 
 
 
@@ -372,15 +429,34 @@ class ItvSet:
         """
         iterable中的元素类型为Itv
         """
+        self._root:ItvNode = None
         for itv in iterable:
             self.add(ItvNode(itv))
-        self._root:ItvNode = None
-        # TODO
 
     def add(self, itv: Itv):
         """
         插入区间，并且合并相交的区间
         """
+        root = self._root
+        if root is None:
+            self._root=ItvNode(itv, False)
+            return
+
+        n1 = root.find_by_lower(itv.a)
+        if n1 is None: # 在最右侧添加节点
+            n2 = _find_max(root)
+            n = ItvNode(itv)
+            n2.rch = n
+            _resolve_insert(n)
+            return
+
+        if n1.itv.right_to_a(itv.b):    # 相交，需要合并
+            n1.itv=itv  
+            # TODO: 删除右边相交的节点
+        else: # 不相交，在n1左侧添加新的节点
+            n = ItvNode(itv)
+            n1.lch = n
+            _resolve_insert(n)
 
     def remove(self, itv: Itv):
         """
