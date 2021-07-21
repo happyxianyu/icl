@@ -1,200 +1,13 @@
 """
 采用红黑树作为基础实现区间树
-参考 https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/index.html#boost_icl.introduction
-按照joining规则实现ItvSet
+过于麻烦，暂时弃用
 """
 
-
-import typing
-from infinity import inf  # 用于表示无穷大
+from .itv import *
 
 __all__ = [
-    'inf',
-    'Itv',
     'ItvSet'
 ]
-
-class Itv:
-    """
-    Interval
-    """
-    def __init__(self, a, b, kind='[]'):
-        """
-        kind表示区间类型, 根据数学上的表示，[]表示闭区间， ()表示开区间
-        a,b分别表示左断点和右端点
-        """
-        self.a = a
-        self.b = b
-        self.left_open = kind[0] == '('
-        self.right_open = kind[1] == ')'
-        self._canonicalize()
-
-    @property
-    def kind(self):
-        return (self.left_open << 1)+ self.right_open
-
-    def _canonicalize(self):
-        """
-        保证空集表示一致
-        """
-        if self.a > self.b or \
-            (self.a == self.b and (self.left_open or self.right_open) ):
-            # 方便比较
-            self.a = inf
-            self.b = -inf
-
-    def empty(self):
-        return self.a > self.b
-
-    def __in__(self, x):
-        """
-        判定某个点是否在区间内
-        """
-        return self.right_to_a(x) and self.left_to_b(x)
-            
-    def right_to_a(self, x):
-        """
-        x在a端点的右边
-        """
-        if self.left_open:
-            return self.a < x
-        else:
-            return self.a <= x
-    
-    def left_to_b(self, b):
-        """
-        x在b断点的左边
-        """
-        if self.right_open:
-            return self.b > x
-        else:
-            return self.b >= x 
-
-    def __and__(self, x: 'Itv'):
-        a = max(self.a, x.a)
-        b = min(self.b, x.b)
-        if a == self.a == self.a:
-            left_open = self.left_open or x.left_open
-        elif a == self.a:
-            left_open = self.left_open
-        elif a == x.a:
-            left_open = x.left_open
-        
-        if b == self.b == self.b:
-            right_open = self.right_open or x.right_open
-        elif b == self.b:
-            right_open = self.right_open
-        elif b == x.b:
-            right_open = x.right_open
-
-        res = Itv(a,b)
-        res.left_open = left_open
-        res.right_open = right_open
-        res._canonicalize()
-        return res
-
-    def __iand__(self, x: 'Itv'):
-        a = max(self.a, x.a)
-        b = min(self.b, x.b)
-        if a == self.a == self.a:
-            left_open = self.left_open or x.left_open
-        elif a == self.a:
-            left_open = self.left_open
-        elif a == x.a:
-            left_open = x.left_open
-        
-        if b == self.b == self.b:
-            right_open = self.right_open or x.right_open
-        elif b == self.b:
-            right_open = self.right_open
-        elif b == x.b:
-            right_open = x.right_open
-
-        self.a = a
-        self.b = b
-        self.left_open = left_open
-        self.right_open = right_open
-        self._canonicalize()
-
-    def __or__(self, x: 'Itv'):
-        a = min(self.a, x.a)
-        b = max(self.b, x.b)
-        if a == self.a == self.a:
-            left_open = self.left_open and x.left_open
-        elif a == self.a:
-            left_open = self.left_open
-        elif a == x.a:
-            left_open = x.left_open
-        
-        if b == self.b == self.b:
-            right_open = self.right_open and x.right_open
-        elif b == self.b:
-            right_open = self.right_open
-        elif b == x.b:
-            right_open = x.right_open
-
-        res = Itv(a,b)
-        res.left_open = left_open
-        res.right_open = right_open
-        res._canonicalize()
-        return res
-    
-    def __ior__(self, x: 'Itv'):
-        a = min(self.a, x.a)
-        b = max(self.b, x.b)
-        if a == self.a == self.a:
-            left_open = self.left_open and x.left_open
-        elif a == self.a:
-            left_open = self.left_open
-        elif a == x.a:
-            left_open = x.left_open
-        
-        if b == self.b == self.b:
-            right_open = self.right_open and x.right_open
-        elif b == self.b:
-            right_open = self.right_open
-        elif b == x.b:
-            right_open = x.right_open
-        
-        self.a = a
-        self.b = b
-        self.left_open = left_open
-        self.right_open = right_open
-        self._canonicalize()
-
-    def __gt__(self, x):
-        if self.left_open:
-            return x <= self.a
-        else:
-            return x < self.a
-
-    def __ge__(self, x):
-        if self.right_open:
-            return x < self.b
-        else:
-            return x <= self.b
-
-    def __lt__(self, x):
-        if self.right_open:
-            return x >= self.b
-        else:
-            return x > self.b
-
-    def __le__(self, x):
-        if self.left_open:
-            return x >= self.a
-        else:
-            return x > self.a
-
-    def __eq__(self, x: 'Itv'):
-        return self.kind == x.kind and self.a == x.a and self.b == x.b
-
-    def __str__(self):
-        a,b = self.a, self.b
-        l = '[('[self.left_open]
-        r = '])'[self.right_open]
-        return f'{l}{a}, {b}{r}'
-
 
 
 
@@ -261,21 +74,47 @@ class ItvNode:
         self._rotate_set_prnt(x)
         return x
 
-    def next_high(self):
-        rch = self.rch
-        prnt = self.prnt
-        if rch is not None:
-            return rch.next_high()
-        if prnt is not None and prnt.lch is self:
-            return prnt
+    def min(self):
+        lch = self.lch
+        if lch is None:
+            return self
+        else:
+            return lch.min()
+        
+    def max(self):
+        rch =self.rch
+        if rch is None:
+            return self
+        else:
+            return rch.max()
 
     def next_low(self):
         lch = self.lch
-        prnt = self.prnt
         if lch is not None:
-            return lch.next_low()
-        if prnt is not None and prnt.rch is self:
-            return prnt
+            return lch.max()
+
+        prnt = self.prnt
+        n = self
+        while prnt is not None:
+            if prnt.rch is n:
+                return prnt
+            else:
+                n = prnt
+                prnt = n.prnt
+
+    def next_high(self):
+        rch = self.rch
+        if rch is not None:
+            return rch.min()
+
+        prnt = self.prnt
+        n = self
+        while prnt is not None:
+            if prnt.lch is n:
+                return prnt
+            else:
+                n = prnt
+                prnt = n.prnt
 
     def find(self, x):
         """
@@ -289,6 +128,9 @@ class ItvNode:
             ch = self.rch
         if ch is not None:
             return ch.find(x)
+
+    def find_neareast(self, x) -> 'ItvNode':
+        return _find_nearest(self, x)
 
     def find_by_lower(self, x):
         """
@@ -351,6 +193,38 @@ def _cba_order_iter(n: ItvNode):
     yield from _cba_order_iter(n.rch)
     yield n
     yield from _cba_order_iter(n.lch)
+
+
+def _iter_from_nearest(self: ItvNode, x, it_next=_abc_order_iter):
+    if self is None:
+        return
+
+    if x in self.itv:
+        yield self
+    if x<=self.a:
+        yield from _iter_from_nearest(self.lch, x)
+        yield self
+        yield from it_next(self.rch)
+    else:
+        yield from _iter_from_nearest(self.rch, x)
+        yield self
+        yield from it_next(self.lch)
+    
+
+
+def _find_nearest(self: ItvNode, x):
+    if self is None:
+        return
+
+    if x in self.itv:
+        return self
+    if x<=self.a:
+        n = _find_nearest(self.lch, x)
+    else:
+        n = _find_nearest(self.rch, x)
+    if n is None:
+        return self
+    return n
 
 
 def _find_by_lower(self: ItvNode, x):
@@ -442,21 +316,21 @@ class ItvSet:
             self._root=ItvNode(itv, False)
             return
 
-        n1 = root.find_by_lower(itv.a)
-        if n1 is None: # 在最右侧添加节点
-            n2 = _find_max(root)
-            n = ItvNode(itv)
-            n2.rch = n
-            _resolve_insert(n)
-            return
-
-        if n1.itv.right_to_a(itv.b):    # 相交，需要合并
+        n1 = root.find_neareast(itv.a)
+        if itv.a in n1.itv: # 相交，需要合并
             n1.itv=itv  
             # TODO: 删除右边相交的节点
-        else: # 不相交，在n1左侧添加新的节点
-            n = ItvNode(itv)
+            return
+
+        #不相交
+        n = ItvNode(itv)
+        if itv.a <= n1.a:
             n1.lch = n
-            _resolve_insert(n)
+        else:
+            n1.rch = n
+        _resolve_insert(n)
+
+
 
     def remove(self, itv: Itv):
         """

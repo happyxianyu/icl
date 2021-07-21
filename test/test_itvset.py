@@ -4,10 +4,10 @@ def make_itvs(pairs):
     return [Itv(pair[0], pair[1]) for pair in pairs]
 
 def test_iter():
-    l = [(1,5), (3, 9), (-3, 8)]
-    s = ItvSet(make_itvs(l))
-    l.sort()
-    assert list(s) == make_itvs(l)
+    l1 = [(1,5), (3, 9), (-3, 8)]
+    l2 = [(-3, 9)]
+    s = ItvSet(make_itvs(l1))
+    assert list(s) == make_itvs(l2)
 
 def test_and():
     # (1, 5) & (3, 7) = (3, 5)
