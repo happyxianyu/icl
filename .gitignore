@@ -1,6 +1,6 @@
-**/tmp/**
 *.tmp.*
 *.tmp
+tmp/*
 
 
 # Byte-compiled / optimized / DLL files

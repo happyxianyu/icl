@@ -1,4 +1,5 @@
 from icl import *
+import random
 
 def make_itvs(pairs):
     return [Itv(pair[0], pair[1]) for pair in pairs]
@@ -8,6 +9,13 @@ def test_iter():
     l2 = [(-3, 9)]
     s = ItvSet(make_itvs(l1))
     assert list(s) == make_itvs(l2)
+
+    l1 = [(1,5), (5,11), (21, 33), (33, 55), (inf, -inf)]
+    l2 = [(1,11), (21, 55)]
+    random.shuffle(l1)
+    s = ItvSet(make_itvs(l1))
+    assert list(s) == make_itvs(l2)
+
 
 def test_and():
     # (1, 5) & (3, 7) = (3, 5)
