@@ -1,3 +1,5 @@
+
+from __future__ import annotations
 from .inf import *
 
 __all__ = [
@@ -27,6 +29,16 @@ def _left_or_near_to(a, b, open_a, open_b):
         return a <= b
 
 
+def _create_itv(a, b, left_open, right_open):
+    itv = Itv.__new__(Itv)
+    itv.a = a
+    itv.b = b
+    itv.left_open = left_open
+    itv.right_open = right_open
+    itv._normalize()
+    return itv
+
+
 class Itv:
     """
     Interval
@@ -41,13 +53,17 @@ class Itv:
         self.b = b
         self.left_open = kind[0] == '('
         self.right_open = kind[1] == ')'
-        self._canonicalize()
+        self._normalize()
+
+    @staticmethod
+    def empty_set():
+        return Itv(inf, -inf)
 
     @property
     def kind(self):
         return (self.left_open << 1) + self.right_open
 
-    def _canonicalize(self):
+    def _normalize(self):
         """
         保证空集表示一致
         """
@@ -56,6 +72,8 @@ class Itv:
             # 方便比较
             self.a = inf
             self.b = -inf
+            self.left_open = True
+            self.right_open = True
 
     def empty(self):
         return self.a > self.b
@@ -84,120 +102,129 @@ class Itv:
         else:
             return self.b >= x
 
-    def intersect(self, itv: 'Itv') -> bool:
+    def intersect(self, other: 'Itv') -> bool:
         """
         是否相交
         """
-        return _left_or_eq_to(self.a, itv.b, self.left_open, itv.right_open) \
-               and _left_or_eq_to(itv.a, self.b, itv.left_open, self.right_open)
+        return _left_or_eq_to(self.a, other.b, self.left_open, other.right_open) \
+            and _left_or_eq_to(other.a, self.b, other.left_open, self.right_open)
 
-    def intersect_or_near(self, itv: 'Itv') -> bool:
+    def intersect_or_near(self, other: 'Itv') -> bool:
         """
         是否相交或紧挨着
         """
-        return _left_or_near_to(self.a, itv.b, self.left_open, itv.right_open) \
-               and _left_or_near_to(itv.a, self.b, itv.left_open, self.right_open)
+        return _left_or_near_to(self.a, other.b, self.left_open, other.right_open) \
+               and _left_or_near_to(other.a, self.b, other.left_open, self.right_open)
 
-    def __and__(self, x: 'Itv'):
-        a = max(self.a, x.a)
-        b = min(self.b, x.b)
+    def split(self, x, is_open=False):
+        left = _create_itv(self.a, x, self.left_open, is_open)
+        right = _create_itv(x, self.b, is_open, self.right_open)
+        return left, right
 
-        if a == self.a == x.a:
-            left_open = self.left_open or x.left_open
+    def __and__(self, other: 'Itv') -> 'Itv':
+        a = max(self.a, other.a)
+        b = min(self.b, other.b)
+
+        if a == self.a == other.a:
+            left_open = self.left_open or other.left_open
         elif a == self.a:
             left_open = self.left_open
-        elif a == x.a:
-            left_open = x.left_open
+        else:  # a == x.a:
+            left_open = other.left_open
 
-        if b == self.b == x.b:
-            right_open = self.right_open or x.right_open
+        if b == self.b == other.b:
+            right_open = self.right_open or other.right_open
         elif b == self.b:
             right_open = self.right_open
-        elif b == x.b:
-            right_open = x.right_open
+        else:  # b == x.b:
+            right_open = other.right_open
 
-        res = Itv(a, b)
-        res.left_open = left_open
-        res.right_open = right_open
-        res._canonicalize()
+        res = _create_itv(a, b, left_open, right_open)
         return res
 
-    def __iand__(self, x: 'Itv'):
-        a = max(self.a, x.a)
-        b = min(self.b, x.b)
-        if a == self.a == x.a:
-            left_open = self.left_open or x.left_open
+    def __iand__(self, other: 'Itv'):
+        a = max(self.a, other.a)
+        b = min(self.b, other.b)
+        if a == self.a == other.a:
+            left_open = self.left_open or other.left_open
         elif a == self.a:
             left_open = self.left_open
-        elif a == x.a:
-            left_open = x.left_open
+        else:  # a == x.a:
+            left_open = other.left_open
 
-        if b == self.b == x.b:
-            right_open = self.right_open or x.right_open
+        if b == self.b == other.b:
+            right_open = self.right_open or other.right_open
         elif b == self.b:
             right_open = self.right_open
-        elif b == x.b:
-            right_open = x.right_open
+        else:  # b == x.b:
+            right_open = other.right_open
 
         self.a = a
         self.b = b
         self.left_open = left_open
         self.right_open = right_open
-        self._canonicalize()
+        self._normalize()
         return self
 
-    def __or__(self, itv: 'Itv'):
-        assert self.intersect_or_near(itv)
+    def __or__(self, other: 'Itv'):
+        assert self.intersect_or_near(other)
 
-        a = min(self.a, itv.a)
-        b = max(self.b, itv.b)
+        a = min(self.a, other.a)
+        b = max(self.b, other.b)
 
-        if a == self.a == itv.a:
-            left_open = self.left_open or itv.left_open
+        if a == self.a == other.a:
+            left_open = self.left_open or other.left_open
         elif a == self.a:
             left_open = self.left_open
-        elif a == itv.a:
-            left_open = itv.left_open
+        else:  # a == itv.a:
+            left_open = other.left_open
 
-        if b == self.b == itv.b:
-            right_open = self.right_open or itv.right_open
+        if b == self.b == other.b:
+            right_open = self.right_open or other.right_open
         elif b == self.b:
             right_open = self.right_open
-        elif b == itv.b:
-            right_open = itv.right_open
+        else:  # b == itv.b:
+            right_open = other.right_open
 
-        res = Itv(a, b)
-        res.left_open = left_open
-        res.right_open = right_open
-        res._canonicalize()
+        res = _create_itv(a, b, left_open, right_open)
         return res
 
-    def __ior__(self, itv: 'Itv'):
-        assert self.intersect_or_near(itv)
+    def __ior__(self, other: 'Itv'):
+        assert self.intersect_or_near(other)
 
-        a = min(self.a, itv.a)
-        b = max(self.b, itv.b)
+        a = min(self.a, other.a)
+        b = max(self.b, other.b)
 
-        if a == self.a == itv.a:
-            left_open = self.left_open or itv.left_open
+        if a == self.a == other.a:
+            left_open = self.left_open or other.left_open
         elif a == self.a:
             left_open = self.left_open
-        elif a == itv.a:
-            left_open = itv.left_open
+        else:  # a == itv.a:
+            left_open = other.left_open
 
-        if b == self.b == itv.b:
-            right_open = self.right_open or itv.right_open
+        if b == self.b == other.b:
+            right_open = self.right_open or other.right_open
         elif b == self.b:
             right_open = self.right_open
-        elif b == itv.b:
-            right_open = itv.right_open
+        else:  # b == itv.b:
+            right_open = other.right_open
 
         self.a = a
         self.b = b
         self.left_open = left_open
         self.right_open = right_open
-        self._canonicalize()
+        self._normalize()
         return self
+
+    def __sub__(self, other: 'Itv'):
+        if self.intersect(other):
+            tmp = self.split(other.a, not other.left_open)
+            v1 = tmp[0]
+            tmp = self.split(other.b, not other.right_open)
+            v2 = tmp[1]
+            return v1, v2
+        else:
+            return self
 
     def __gt__(self, x):
         if self.left_open:
@@ -223,8 +250,11 @@ class Itv:
         else:
             return x > self.a
 
-    def __eq__(self, x: 'Itv'):
-        return self.kind == x.kind and self.a == x.a and self.b == x.b
+    def __eq__(self, other: 'Itv'):
+        return self.kind == other.kind and self.a == other.a and self.b == other.b
+
+    def __hash__(self):
+        return hash((self.a, self.b, self.kind))
 
     def __str__(self):
         a, b = self.a, self.b
@@ -233,7 +263,3 @@ class Itv:
         return f'{l}{a}, {b}{r}'
 
     __repr__ = __str__
-
-
-
-

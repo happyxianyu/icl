@@ -2,6 +2,7 @@
 使用treep实现itvset
 """
 
+from __future__ import annotations
 import functools
 import random
 from typing import Tuple, Union
@@ -31,6 +32,9 @@ class Node:
     @property
     def b(self):
         return self.itv.b
+
+    def is_root(self):
+        return self.prnt is None
 
     def set_rch(self, rch: 'Node'):
         self.rch = rch
@@ -81,14 +85,14 @@ class Node:
         """
         yield from _cba_order_iter(self)
 
-    def min(self):
+    def min(self) -> 'Node':
         lch = self.lch
         if lch is None:
             return self
         else:
             return lch.min()
 
-    def max(self):
+    def max(self) -> 'Node':
         rch = self.rch
         if rch is None:
             return self
@@ -122,6 +126,30 @@ class Node:
             else:
                 n = prnt
                 prnt = n.prnt
+
+
+def _remove_node(root: Node, n: Node):
+    assert n.lch is None or n.rch is None
+    prnt = n.prnt
+
+    def _set_ch(x):
+        if n is prnt.lch:
+            prnt.set_rch(x)
+        else:
+            prnt.set_rch(x)
+
+    if prnt is None:
+        if n.lch is None:
+            return n.rch
+        else:
+            return n.lch
+    else:
+        if n.lch is None:
+            _set_ch(n.rch)
+        else:
+            _set_ch(n.lch)
+        return root
+
 
 
 def _abc_order_iter(n):
@@ -284,11 +312,82 @@ class ItvSet:
         """
         删除区间
         """
+        if itv.empty() or self.empty():
+            return
+
+        root = self._root
+
+        t1, t2, t3 = None, None, None
+        t1, t2 = _split(root, itv.a)
+        if t2 is not None:
+            t2, t3 = _split(t2, itv.b)
+
+        n = None
+        if t1 is not None:
+            t1_max = t1.max()
+            tmp = t1_max.itv - itv
+            if tmp is not t1_max.itv:
+                v1, v2 = tmp
+                if not v1.empty():  # v1不空
+                    t1_max.itv = v1
+                    if not v2.empty():
+                        n = Node(v2)
+                elif v2.empty():  # v1和v2都空
+                    t1 = _remove_node(t1_max)
+                else:  # v1空，v2不空
+                    t1_max.itv = v2
+
+        if t2 is not None:
+            t2_max = t2.max()
+            tmp = t2_max.itv - itv
+            if tmp is not t2_max.itv:
+                v1, v2 = tmp
+                assert v1.empty()
+                if v2.empty():
+                    t2 = _remove_node(t2_max)
+                else:
+                    t2_max.itv = v2
+        self._root = _merge(_merge(t1, n), t3)
+
+    def intersection(self, itv: 'Itv'):
+        root = self._root
+        if root is None:
+            return
+
+        if itv.empty():
+            self._root = None
+
+        t1, t2, t3 = None, None, None
+        t1, t2 = _split(root, itv.a)
+        if t2 is not None:
+            t2, t3 = _split(t2, itv.b)
+
+        n = None
+        if t1 is not None:
+            t1_max = t1.max()
+            tmp = t1_max.itv & itv
+            if not tmp.empty():
+                n = Node(tmp)
+
+        if t2 is not None:
+            t2_max = t2.max()
+            t2_max.itv &= itv
+            if t2_max.itv.empty():
+                t2 = _remove_node(t2_max)
+
+        self._root = _merge(n, t2)
+
+    def empty(self):
+        return self._root is None
 
     def __in__(self, x):
         """
         判定一个点是否在集合内
         """
+        root = self._root
+        if root is not None:
+            return root.find(x) is not None
+        return False
 
     def __iand__(self, s: 'ItvSet'):
         """
