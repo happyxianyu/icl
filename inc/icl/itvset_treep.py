@@ -282,7 +282,7 @@ def _split(n: Node, x, is_open=False, t1=None, t2=None) -> Union[Tuple[None, Non
         n.set_lch(lch)
 
     if n.itv.a <= x:
-        if is_open and n.itv.left_open:
+        if is_open and n.itv.left_open and n.itv.a == x:
             to_t2()
         else:
             to_t1()
@@ -378,7 +378,7 @@ class ItvSet:
         t1, t2, t3 = None, None, None
         t1, t2 = _split(root, itv.a)
         if t2 is not None:
-            t2, t3 = _split(t2, itv.b)
+            t2, t3 = _split(t2, itv.b, itv.right_open)
 
         n = None
         if t1 is not None:
@@ -401,10 +401,9 @@ class ItvSet:
             if tmp is not t2_max.itv:
                 v1, v2 = tmp
                 assert v1.empty()
-                if v2.empty():
-                    t2 = _remove_node(t2, t2_max)
-                else:
-                    t2_max.itv = v2
+                if not v2.empty():
+                    assert n is None
+                    n = Node(v2)
         self._root = _merge(_merge(t1, n), t3)
 
     def intersection(self, itv: 'Itv'):
@@ -418,7 +417,7 @@ class ItvSet:
         t1, t2, t3 = None, None, None
         t1, t2 = _split(root, itv.a)
         if t2 is not None:
-            t2, t3 = _split(t2, itv.b)
+            t2, t3 = _split(t2, itv.b, itv.right_open)
 
         n = None
         if t1 is not None:
