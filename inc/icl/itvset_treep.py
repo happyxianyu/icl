@@ -260,13 +260,13 @@ def _split(n: Node, x, is_open=False, t1=None, t2=None) -> Union[Tuple[None, Non
     def to_t1():
         nonlocal t1, t2
         t1 = n
-        rch, t2 = _split(n.rch, x, n.rch, t2)
+        rch, t2 = _split(n.rch, x, is_open, n.rch, t2)
         n.set_rch(rch)
 
     def to_t2():
         nonlocal t1, t2
         t2 = n
-        t1, lch = _split(n.lch, x, n.lch, t1)
+        t1, lch = _split(n.lch, x, is_open, n.lch, t1)
         n.set_lch(lch)
 
     if n.itv.a <= x:
@@ -324,6 +324,7 @@ class ItvSet:
             return
 
         root = self._root
+
 
         t1, t2, t3 = None, None, None
         t1, t2 = _split(root, itv.a)

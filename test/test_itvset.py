@@ -43,7 +43,7 @@ def test_or_1():
     random.seed(2333)
     idxs = sorted({random.randint(1, 10000) for _ in range(10)})
     itvs = Itv(0, 10000).splits(idxs)
-    itvs = [v.create_like(left_open=True) for v in itvs]
+    itvs = [v.create_like() for v in itvs]
 
     print(itvs)
     random.shuffle(itvs)
@@ -59,13 +59,11 @@ def test_or_1():
         mid = i + size // 2
         s1 = merge1(ss, i, mid)
         s2 = merge1(ss, mid, j)
-        res = s1|s2
-        if i == 0:
-            s1|s2
+        res = s1 | s2
         return res
 
     def merge(ss):
         return merge1(ss, 0, len(ss))
 
     s = merge(itv_sets)
-    print(s)
+    assert s == ItvSet([Itv(0, 10000)])
