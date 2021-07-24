@@ -151,6 +151,18 @@ class Node:
             n.rch = self.rch._copy(n)
         return n
 
+    def height(self):
+        lch,rch = self.lch, self.rch
+        l = 0 if lch is None else lch.height()
+        r = 0 if rch is None else rch.height()
+        return max(l,r)+1
+
+    def __len__(self):
+        lch,rch = self.lch, self.rch
+        l = 0 if lch is None else len(lch)
+        r = 0 if rch is None else len(rch)
+        return l+r+1
+
 
 
 def _remove_node(root: Node, n: Node):
@@ -379,7 +391,7 @@ class ItvSet:
                     if not v2.empty():
                         n = Node(v2)
                 elif v2.empty():  # v1和v2都空
-                    t1 = _remove_node(t1_max)
+                    t1 = _remove_node(t1, t1_max)
                 else:  # v1空，v2不空
                     t1_max.itv = v2
 
@@ -390,7 +402,7 @@ class ItvSet:
                 v1, v2 = tmp
                 assert v1.empty()
                 if v2.empty():
-                    t2 = _remove_node(t2_max)
+                    t2 = _remove_node(t2, t2_max)
                 else:
                     t2_max.itv = v2
         self._root = _merge(_merge(t1, n), t3)
@@ -419,7 +431,7 @@ class ItvSet:
             t2_max = t2.max()
             t2_max.itv &= itv
             if t2_max.itv.empty():
-                t2 = _remove_node(t2_max)
+                t2 = _remove_node(t2, t2_max)
 
         self._root = _merge(n, t2)
 
@@ -435,12 +447,12 @@ class ItvSet:
             return root.find(x) is not None
         return False
 
-    def __iand__(self, s: 'ItvSet'):
+    def __iand__(self, other: 'ItvSet'):
         """
         相交集合
         """
-        for v in s:
-            self.intersection(v)
+        res = self & other
+        self._root = res._root
         return self
 
     def __ior__(self, s: 'ItvSet'):
@@ -460,8 +472,12 @@ class ItvSet:
         return self
 
     def __and__(self, other):
-        res = self.copy()
-        res &= other
+        tmp = []
+        for v in other:
+            x = self.copy()
+            x.intersection(v)
+            tmp.append(x)
+        res = ItvSet.union(*tmp)
         return res
 
     def __or__(self, other):
@@ -489,6 +505,14 @@ class ItvSet:
     def __iter__(self):  # 从小到大返回
         for n in _abc_order_iter(self._root):
             yield n.itv
+
+    def __len__(self):
+        return len(self._root)
+
+    def union(self, *args):
+        for arg in args:
+            self|=arg
+        return self
 
     def copy(self):
         if self._root is None:
