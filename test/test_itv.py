@@ -23,7 +23,7 @@ def test_empty():
 
 def test_and():
     a, b = Itv(0, 1, '()'), Itv(1, 2, '()')
-    res = a&b
+    res = a & b
     assert res.empty()
 
     a, b = Itv(0, 1, '()'), Itv(1, 2, '()')
@@ -42,9 +42,17 @@ def test_and():
     print(res)
     assert not res.empty()
 
-
     a, b = Itv(0, 2, '(]'), Itv(1, 2, '[)')
     res = a & b
     print(res)
     assert res == Itv(1, 2, '[)')
 
+
+def test_splits():
+    random.seed(2333)
+    v = Itv(0, 1000)
+    idxs = {random.randint(1, 1000) for _ in range(50)}
+    idxs = sorted(idxs)
+    print(idxs)
+    res = v.splits(idxs)
+    print(res)

@@ -5,6 +5,7 @@
 from __future__ import annotations
 import functools
 import random
+from itertools import zip_longest
 from typing import Tuple, Union
 from .itv import *
 
@@ -20,6 +21,16 @@ class Node:
         self.lch: 'Node' = None
         self.rch: 'Node' = None
         self.prnt: 'Node' = None
+
+    @staticmethod
+    def _create(itv, priority, lch=None, rch=None, prnt=None):
+        n = Node.__new__(Node)
+        n.itv = itv
+        n.priority = priority
+        n.lch = lch
+        n.rch = rch
+        n.prnt = prnt
+        return n
 
     @property
     def k(self):
@@ -85,6 +96,8 @@ class Node:
         """
         yield from _cba_order_iter(self)
 
+    __iter__ = abc_order_iter
+
     def min(self) -> 'Node':
         lch = self.lch
         if lch is None:
@@ -127,6 +140,18 @@ class Node:
                 n = prnt
                 prnt = n.prnt
 
+    def copy(self):
+        return self._copy(None)
+
+    def _copy(self, prnt):
+        n = self._create(self.itv, self.priority, None, None, prnt)
+        if self.lch is not None:
+            n.lch = self.lch._copy(n)
+        if self.rch is not None:
+            n.rch = self.rch._copy(n)
+        return n
+
+
 
 def _remove_node(root: Node, n: Node):
     assert n.lch is None or n.rch is None
@@ -149,7 +174,6 @@ def _remove_node(root: Node, n: Node):
         else:
             _set_ch(n.lch)
         return root
-
 
 
 def _abc_order_iter(n):
@@ -229,18 +253,29 @@ def _find_by_upper(self, x):
         return n
 
 
-def _split(n: Node, x, t1=None, t2=None) -> Union[Tuple[None, None], Tuple[Node, Node]]:
+def _split(n: Node, x, is_open=False, t1=None, t2=None) -> Union[Tuple[None, None], Tuple[Node, Node]]:
     if n is None:
         return None, None
 
-    if n.itv.a <= x:
+    def to_t1():
+        nonlocal t1, t2
         t1 = n
-        rch, t2 = _split(n.rch, x, n.rch, t2)
+        rch, t2 = _split(n.rch, x, is_open, n.rch, t2)
         n.set_rch(rch)
-    else:
+
+    def to_t2():
+        nonlocal t1, t2
         t2 = n
-        t1, lch = _split(n.lch, x, n.lch, t1)
+        t1, lch = _split(n.lch, x, is_open, n.lch, t1)
         n.set_lch(lch)
+
+    if n.itv.a <= x:
+        if is_open and n.itv.left_open:
+            to_t2()
+        else:
+            to_t1()
+    else:
+        to_t2()
     return t1, t2
 
 
@@ -271,6 +306,12 @@ class ItvSet:
         for itv in iterable:
             self.add(itv)
 
+    @staticmethod
+    def _create(root):
+        new_ = ItvSet.__new__(ItvSet)
+        new_._root = root
+        return new_
+
     def add(self, itv: Itv):
         """
         插入区间，并且合并相交的区间
@@ -284,10 +325,11 @@ class ItvSet:
 
         root = self._root
 
+
         t1, t2, t3 = None, None, None
         t1, t2 = _split(root, itv.a)
         if t2 is not None:
-            t2, t3 = _split(t2, itv.b)
+            t2, t3 = _split(t2, itv.b, itv.right_open)
 
         create_flag = True
         if t1 is not None:
@@ -301,12 +343,16 @@ class ItvSet:
             t2_max = t2.max()
             if itv.intersect_or_near(t2_max.itv):
                 itv |= t2_max.itv
+                if not create_flag:
+                    t1_max.itv = itv
 
         n = None
         if create_flag:
             n = Node(itv)
 
         self._root = _merge(_merge(t1, n), t3)
+
+        return
 
     def remove(self, itv: Itv):
         """
@@ -393,32 +439,61 @@ class ItvSet:
         """
         相交集合
         """
+        for v in s:
+            self.intersection(v)
+        return self
 
     def __ior__(self, s: 'ItvSet'):
         """
         合并集合
         """
+        for v in s:
+            self.add(v)
+        return self
 
     def __isub__(self, s: 'ItvSet'):
         """
         减去集合
         """
+        for v in s:
+            self.remove(v)
+        return self
 
     def __and__(self, other):
-        pass
+        res = self.copy()
+        res &= other
+        return res
 
     def __or__(self, other):
-        pass
+        res = self.copy()
+        res |= other
+        return res
 
     def __sub__(self, other):
-        pass
+        res = self.copy()
+        res -= other
+        return res
 
     def __eq__(self, other):
-        pass
+        for a, b in zip_longest(self, other):
+            if a is None or b is None or a != b:
+                return False
+        return True
 
     def __str__(self):
-        return str(list(self))
+        tmp = ', '.join(map(str, self))
+        return 'ItvSet{' + tmp + '}'
+
+    __repr__ = __str__
 
     def __iter__(self):  # 从小到大返回
         for n in _abc_order_iter(self._root):
             yield n.itv
+
+    def copy(self):
+        if self._root is None:
+            root = None
+        else:
+            root = self._root.copy()
+
+        return self._create(root)

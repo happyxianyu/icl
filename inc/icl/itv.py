@@ -63,6 +63,13 @@ class Itv:
     def kind(self):
         return (self.left_open << 1) + self.right_open
 
+    def create_like(self, a = None, b = None, left_open = None, right_open = None):
+        a = a if a is not None else self.a
+        b = b if b is not None else self.b
+        left_open = left_open if left_open is not None else self.left_open
+        right_open = right_open if right_open is not None else self.right_open
+        return _create_itv(a, b, left_open, right_open)
+
     def _normalize(self):
         """
         保证空集表示一致
@@ -121,6 +128,15 @@ class Itv:
         right = _create_itv(x, self.b, is_open, self.right_open)
         return left, right
 
+    def splits(self, xs, is_open=False):
+        res = []
+        v2 = self
+        for i in xs:
+            v1, v2 = v2.split(i, is_open)
+            res.append(v1)
+        res.append(v2)
+        return res
+
     def __and__(self, other: 'Itv') -> 'Itv':
         a = max(self.a, other.a)
         b = min(self.b, other.b)
@@ -142,30 +158,6 @@ class Itv:
         res = _create_itv(a, b, left_open, right_open)
         return res
 
-    def __iand__(self, other: 'Itv'):
-        a = max(self.a, other.a)
-        b = min(self.b, other.b)
-        if a == self.a == other.a:
-            left_open = self.left_open or other.left_open
-        elif a == self.a:
-            left_open = self.left_open
-        else:  # a == x.a:
-            left_open = other.left_open
-
-        if b == self.b == other.b:
-            right_open = self.right_open or other.right_open
-        elif b == self.b:
-            right_open = self.right_open
-        else:  # b == x.b:
-            right_open = other.right_open
-
-        self.a = a
-        self.b = b
-        self.left_open = left_open
-        self.right_open = right_open
-        self._normalize()
-        return self
-
     def __or__(self, other: 'Itv'):
         assert self.intersect_or_near(other)
 
@@ -173,14 +165,14 @@ class Itv:
         b = max(self.b, other.b)
 
         if a == self.a == other.a:
-            left_open = self.left_open or other.left_open
+            left_open = self.left_open and other.left_open
         elif a == self.a:
             left_open = self.left_open
         else:  # a == itv.a:
             left_open = other.left_open
 
         if b == self.b == other.b:
-            right_open = self.right_open or other.right_open
+            right_open = self.right_open and other.right_open
         elif b == self.b:
             right_open = self.right_open
         else:  # b == itv.b:
@@ -189,32 +181,8 @@ class Itv:
         res = _create_itv(a, b, left_open, right_open)
         return res
 
-    def __ior__(self, other: 'Itv'):
-        assert self.intersect_or_near(other)
-
-        a = min(self.a, other.a)
-        b = max(self.b, other.b)
-
-        if a == self.a == other.a:
-            left_open = self.left_open or other.left_open
-        elif a == self.a:
-            left_open = self.left_open
-        else:  # a == itv.a:
-            left_open = other.left_open
-
-        if b == self.b == other.b:
-            right_open = self.right_open or other.right_open
-        elif b == self.b:
-            right_open = self.right_open
-        else:  # b == itv.b:
-            right_open = other.right_open
-
-        self.a = a
-        self.b = b
-        self.left_open = left_open
-        self.right_open = right_open
-        self._normalize()
-        return self
+    __iand__ = __and__
+    __ior__ = __or__
 
     def __sub__(self, other: 'Itv'):
         if self.intersect(other):
