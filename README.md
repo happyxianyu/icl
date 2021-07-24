@@ -18,7 +18,7 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 
 Itv: Interval表示区间
 
-ItvNode: 区间树节点
+Node: 区间树节点
 
 ItvSet：区间集合
 
