@@ -99,12 +99,33 @@ def test_and_1():
 def test_sub():
     s1 = ItvSet(make_itvs([(1, 5)]))
     s2 = ItvSet(make_itvs([(3, 7)]))
+    # test left - right
     s3 = s1 - s2
     assert s3 == ItvSet([Itv(1, 3, '[)')])
+    # test right - left
     s3 = s2 - s1
     assert s3 == ItvSet([Itv(5, 7, '(]')])
+
+
+    s1 = ItvSet(make_itvs([(1, 5)]))
+    s2 = ItvSet(make_itvs([(5, 7)]))
+    s3 = s1 - s2
+    assert s3 == ItvSet([Itv(1,5, '[)')])
+    s3 = s2 - s1
+    assert s3 == ItvSet([Itv(5, 7, '(]')])
+
+
 
     s1 = ItvSet(make_itvs([(1, 7)]))
     s2 = ItvSet(make_itvs([(3, 5)]))
     s3 = s1 - s2
     assert s3 == ItvSet([Itv(1, 3, '[)'), Itv(5, 7, '(]')])
+    s3 = s2 - s1
+    assert s3 == ItvSet()
+
+    s1 = ItvSet([Itv(1, 3, '()')])
+    s2 = ItvSet([Itv(3, 5, '()')])
+    s3 = s2 - s1
+    assert s3 == s2
+    s3 = s1 - s2
+    assert s3 == s1

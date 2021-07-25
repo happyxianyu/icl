@@ -315,6 +315,8 @@ class ItvSet:
         iterable中的元素类型为Itv
         """
         self._root: Node = None
+        if iterable is None:
+            return
         for itv in iterable:
             self.add(itv)
 
