@@ -42,6 +42,7 @@ def _create_itv(a, b, left_open, right_open):
 class Itv:
     """
     Interval
+    应当视为不可变对象，任何属性创建后不应当更改
     """
 
     def __init__(self, a, b, kind='[]'):
@@ -61,6 +62,9 @@ class Itv:
 
     @property
     def kind(self):
+        """
+        此属性应当只被用作比较，而不应当有其他用途
+        """
         return (self.left_open << 1) + self.right_open
 
     def create_like(self, a = None, b = None, left_open = None, right_open = None):

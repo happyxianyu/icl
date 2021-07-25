@@ -1,5 +1,5 @@
 """
-使用treep实现itvset
+使用treap实现itvset
 """
 
 from __future__ import annotations
