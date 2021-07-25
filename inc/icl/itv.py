@@ -85,7 +85,7 @@ class Itv:
     def empty(self):
         return self.a > self.b
 
-    def __in__(self, x):
+    def __contains__(self, x):
         """
         判定某个点是否在区间内
         """

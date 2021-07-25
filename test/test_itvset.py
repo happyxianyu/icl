@@ -129,3 +129,19 @@ def test_sub():
     assert s3 == s2
     s3 = s1 - s2
     assert s3 == s1
+
+def test_in():
+    def generate_sets(n=10, seed=2333):
+        random.seed(seed)
+        idxs = sorted({random.randint(1, 10000) for _ in range(n)})
+        itvs = Itv(0, 10000).splits(idxs, True)
+        random.shuffle(itvs)
+        itv_sets = [ItvSet([v]) for v in itvs]
+        return itv_sets
+    s = ItvSet.union(*generate_sets(100))
+    print(s)
+
+    assert 1 in s
+    assert 27 not in s
+    assert 705 not in s
+    assert 533 in s
