@@ -14,6 +14,10 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 
 关于规则的定义可关于boost::icl的链接
 
+## 当前进度
+
+ItvSet基本功能已完成，但缺少足够的测试
+
 ## 主要类型
 
 Itv: Interval表示区间
