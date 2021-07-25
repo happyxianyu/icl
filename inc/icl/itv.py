@@ -42,6 +42,7 @@ def _create_itv(a, b, left_open, right_open):
 class Itv:
     """
     Interval
+    应当视为不可变对象，任何属性创建后不应当更改
     """
 
     def __init__(self, a, b, kind='[]'):
