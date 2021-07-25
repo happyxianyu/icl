@@ -3,10 +3,11 @@
 """
 
 from __future__ import annotations
-import functools
 import random
 from itertools import zip_longest
 from typing import Tuple, Union
+
+from . import inf
 from .itv import *
 
 __all__ = [
@@ -315,6 +316,8 @@ class ItvSet:
         iterable中的元素类型为Itv
         """
         self._root: Node = None
+        if iterable is None:
+            return
         for itv in iterable:
             self.add(itv)
 
@@ -368,7 +371,7 @@ class ItvSet:
 
     def remove(self, itv: Itv):
         """
-        删除区间
+        移除区间
         """
         if itv.empty() or self.empty():
             return
@@ -407,6 +410,9 @@ class ItvSet:
         self._root = _merge(_merge(t1, n), t3)
 
     def intersection(self, itv: 'Itv'):
+        """
+        和区间取交集
+        """
         root = self._root
         if root is None:
             return
@@ -437,7 +443,10 @@ class ItvSet:
     def empty(self):
         return self._root is None
 
-    def __in__(self, x):
+    def __neg__(self):
+        return ItvSet([Itv(-inf, inf)]) - self
+
+    def __contains__(self, x):
         """
         判定一个点是否在集合内
         """
@@ -509,9 +518,14 @@ class ItvSet:
         return len(self._root)
 
     def union(self, *args):
+        """
+        取多个集合的并集
+        """
         for arg in args:
             self|=arg
         return self
+
+    or_ = union
 
     def copy(self):
         if self._root is None:

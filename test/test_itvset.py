@@ -99,12 +99,49 @@ def test_and_1():
 def test_sub():
     s1 = ItvSet(make_itvs([(1, 5)]))
     s2 = ItvSet(make_itvs([(3, 7)]))
+    # test left - right
     s3 = s1 - s2
     assert s3 == ItvSet([Itv(1, 3, '[)')])
+    # test right - left
     s3 = s2 - s1
     assert s3 == ItvSet([Itv(5, 7, '(]')])
+
+
+    s1 = ItvSet(make_itvs([(1, 5)]))
+    s2 = ItvSet(make_itvs([(5, 7)]))
+    s3 = s1 - s2
+    assert s3 == ItvSet([Itv(1,5, '[)')])
+    s3 = s2 - s1
+    assert s3 == ItvSet([Itv(5, 7, '(]')])
+
+
 
     s1 = ItvSet(make_itvs([(1, 7)]))
     s2 = ItvSet(make_itvs([(3, 5)]))
     s3 = s1 - s2
     assert s3 == ItvSet([Itv(1, 3, '[)'), Itv(5, 7, '(]')])
+    s3 = s2 - s1
+    assert s3 == ItvSet()
+
+    s1 = ItvSet([Itv(1, 3, '()')])
+    s2 = ItvSet([Itv(3, 5, '()')])
+    s3 = s2 - s1
+    assert s3 == s2
+    s3 = s1 - s2
+    assert s3 == s1
+
+def test_in():
+    def generate_sets(n=10, seed=2333):
+        random.seed(seed)
+        idxs = sorted({random.randint(1, 10000) for _ in range(n)})
+        itvs = Itv(0, 10000).splits(idxs, True)
+        random.shuffle(itvs)
+        itv_sets = [ItvSet([v]) for v in itvs]
+        return itv_sets
+    s = ItvSet.union(*generate_sets(100))
+    print(s)
+
+    assert 1 in s
+    assert 27 not in s
+    assert 705 not in s
+    assert 533 in s
