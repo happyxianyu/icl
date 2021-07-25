@@ -1,4 +1,8 @@
-# icl
+# ICL
+
+## 版本
+
+0.0
 
 ## 简介
 
@@ -14,11 +18,13 @@ boost::icl可以参考https://www.boost.org/doc/libs/1_76_0/libs/icl/doc/html/in
 
 关于规则的定义可关于boost::icl的链接
 
-## 类型
+## 当前进度
+
+ItvSet基本功能已完成，但缺少足够的测试
+
+## 主要类型
 
 Itv: Interval表示区间
-
-ItvNode: 区间树节点
 
 ItvSet：区间集合
 
@@ -31,8 +37,6 @@ ItvSet：区间集合
 ## 路径
 
 inc/icl 			模块位置
-
-inc/icl/icl.py 当前全部实现
 
 test            测试目录， 按照pytest规则写
 
