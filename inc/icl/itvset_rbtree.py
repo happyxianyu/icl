@@ -303,6 +303,7 @@ class ItvSet:
         """
         iterable中的元素类型为Itv
         """
+        raise NotImplementedError
         self._root:ItvNode = None
         for itv in iterable:
             self.add(ItvNode(itv))
